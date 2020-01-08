@@ -14,10 +14,8 @@ public class Main {
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 		    public void run() {
 		        try {
-		        	if(Chart.getSerialPort() == null) {
-		        		System.exit(0);
-		        	}
-		        	if(Chart.getSerialPort().isOpened()) Chart.getSerialPort().closePort();
+					if(Chart.getSerialPort() != null && Chart.getSerialPort().isOpened())
+						Chart.getSerialPort().closePort();
 				} catch (SerialPortException e) {
 					e.printStackTrace();
 				}
