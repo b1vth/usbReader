@@ -1,13 +1,13 @@
 package pl.wrocansat.usbReader.Listener;
 
-import java.util.Arrays;
-
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
 import pl.wrocansat.usbReader.Frame.Chart;
 import pl.wrocansat.usbReader.Utils.Logger;
+
+import java.util.Arrays;
 
 public class PortListener implements SerialPortEventListener {
 	
@@ -18,9 +18,9 @@ public class PortListener implements SerialPortEventListener {
     public void serialEvent(SerialPortEvent event) {
     	serialPort = Chart.getSerialPort();
         
-    	if(event.isRXCHAR() && event.getEventValue() > 41) {
-            try {	
-            	byte buffer[] = serialPort.readBytes(41);
+    	if(event.isRXCHAR() && event.getEventValue() > 256) {
+            try {
+            	byte buffer[] = serialPort.readBytes(256);
             	data = new String(buffer);
             	Logger.sendLog("Data comming from " + event.getPortName() + ": " + data);
             	Arrays.fill(buffer, (byte)0);

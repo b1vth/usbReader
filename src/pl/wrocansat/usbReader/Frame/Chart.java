@@ -1,27 +1,23 @@
 package pl.wrocansat.usbReader.Frame;
 
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-
-import javax.swing.*;
-
+import jssc.SerialPort;
+import jssc.SerialPortException;
+import jssc.SerialPortList;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
-import jssc.SerialPort;
-import jssc.SerialPortException;
-import jssc.SerialPortList;
 import pl.wrocansat.usbReader.Listener.PortListener;
 import pl.wrocansat.usbReader.Main;
 import pl.wrocansat.usbReader.Utils.Logger;
 import pl.wrocansat.usbReader.Utils.Util;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class Chart implements Runnable{
 	
@@ -33,7 +29,15 @@ public class Chart implements Runnable{
 	private static JComboBox<String> portList;
 	private static JFrame window;
 	private static JButton connectButton;
-	private static XYSeries series;
+
+	private static XYSeries temperature;
+	private static XYSeries pressure;
+	private static XYSeries firstGas;
+	private static XYSeries secondGas;
+	private static XYSeries thirdGas;
+	private static XYSeries humidity;
+	private static XYSeries airClear;
+
 	private static JLabel timeRefreshLabel;
 	private static JTextField timeRefreshText;
 	//Thanks for upgrdman from YouTube for chart look
@@ -70,8 +74,23 @@ public class Chart implements Runnable{
 		for(int i = 0; i < portNames.length; i++)
 			portList.addItem(portNames[i]);
 
-		series = new XYSeries("SerialPort Readings");
-		XYSeriesCollection dataset = new XYSeriesCollection(series);
+		temperature = new XYSeries("temperature");
+		pressure = new XYSeries("pressure");
+		firstGas = new XYSeries("firstGas");
+		secondGas = new XYSeries("secondGas");
+		thirdGas = new XYSeries("thirdGas");
+		humidity = new XYSeries("humidity");
+		airClear = new XYSeries("air");
+
+		XYSeriesCollection dataset = new XYSeriesCollection();
+		dataset.addSeries(temperature);
+		dataset.addSeries(pressure);
+		dataset.addSeries(firstGas);
+		dataset.addSeries(secondGas);
+		dataset.addSeries(thirdGas);
+		dataset.addSeries(humidity);
+		dataset.addSeries(airClear);
+
 		JFreeChart chart = ChartFactory.createXYLineChart("SerialPort Readings", "Time", "Data", dataset, PlotOrientation.VERTICAL, false, false, false);
 		window.add(new ChartPanel(chart), BorderLayout.CENTER);
 	}
@@ -104,6 +123,7 @@ public class Chart implements Runnable{
 	public void run() {
 		final long[] refreshTime = new long[1];
 		final String[] refreshTimeString = new String[1];
+
 		connectButton.addActionListener(new ActionListener(){
 			@Override public void actionPerformed(ActionEvent arg0) {
 				if(connectButton.getText().equals("Connect")) {
@@ -120,20 +140,46 @@ public class Chart implements Runnable{
 					Thread thread = new Thread(){
 						@Override public void run() {
 							String lastLine = "";
+							boolean running=true;
 							while (!portList.isEnabled()) {
 								String line = PortListener.getData().replace("\n", "").replace("\r", "");
-								//double number = Double.parseDouble(line);
-								//Logger.sendLog("Data comming " + number);
-								//series.add((x++)/4, number);
-								boolean canPaint = lastLine.equals(line);
-								if(!canPaint) {
-									Main.getWindow().fillNextPixel(line);
-									lastLine = line;
+								//d - dane /obrot x/obrot y/obrot z/temperatura/cisnienie/1 gaz/2 gaz/dlugosc/szerokosc/3 gaz/wilgoc/jakosc powietrza
+								//p - zdjecie
+
+								if(line.charAt(0) == 'd') {
+									String[] dataSplitted = line.split(",");
+									float temp = Float.parseFloat(dataSplitted[3]);
+									int press = Integer.parseInt(dataSplitted[4]);
+									int firstG = Integer.parseInt(dataSplitted[5]);
+									int secondG = Integer.parseInt(dataSplitted[6]);
+									int thirdG = Integer.parseInt(dataSplitted[9]);
+									int humid = Integer.parseInt(dataSplitted[10]);
+									int air = Integer.parseInt(dataSplitted[11]);
+
+									temperature.add((x++)/4, temp);
+									pressure.add((x++)/4, press);
+									firstGas.add((x++)/4, firstG);
+									secondGas.add((x++)/4, secondG);
+									thirdGas.add((x++)/4, thirdG);
+									humidity.add((x++)/4, humid);
+									airClear.add((x++)/4, air);
 								}
-								window.repaint();
+
+								if(line.charAt(0) == 'p') {
+									boolean canPaint = lastLine.equals(line);
+									if(!canPaint) {
+										Main.getWindow().fillNextPixel(line);
+										lastLine = line;
+									}
+									window.repaint();
+								}
+
+								String[] lineSplitted = line.split(",");
+								Logger.sendInfo("Data from port " + serialPort.getPortName() + line);
+
 							}
 							try {
-								Thread.sleep(refreshTime[0], 500000);
+								Thread.sleep(refreshTime[0]);
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
@@ -143,7 +189,13 @@ public class Chart implements Runnable{
 				} else {
 					portList.setEnabled(true);
 					connectButton.setText("Connect");
-					series.clear();
+					temperature.clear();
+					pressure.clear();
+					firstGas.clear();
+					secondGas.clear();
+					thirdGas.clear();
+					humidity.clear();
+					airClear.clear();
 					x = 0;
 				}
 			}

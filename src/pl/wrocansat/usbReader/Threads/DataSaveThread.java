@@ -2,22 +2,21 @@ package pl.wrocansat.usbReader.Threads;
 
 import pl.wrocansat.usbReader.Frame.Chart;
 import pl.wrocansat.usbReader.Listener.PortListener;
-import pl.wrocansat.usbReader.Main;
 import pl.wrocansat.usbReader.Utils.Logger;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 
 public class DataSaveThread implements Runnable {
 
-    static PrintWriter pw;
+    static PrintWriter data;
+    static PrintWriter picture;
     private volatile boolean running = true;
 
     public DataSaveThread() {
-        pw = Main.pw;
         try {
-            pw = new PrintWriter("Data.txt");
+            data = new PrintWriter("data.txt");
+            picture = new PrintWriter("picture.txt");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -28,15 +27,25 @@ public class DataSaveThread implements Runnable {
         String lastLine = "";
         while (running) {
             String line = PortListener.getData().replace("\n", "").replace("\r", "");
-            boolean canPaint = lastLine.equals(line);
-            if (!canPaint) {
-                pw.println(PortListener.getData());
-                lastLine = line;
+
+            if(line.equalsIgnoreCase("0")) return;
+
+            if(line.charAt(0) == 'd') {
+                data.println(line.replace("d", ""));
+            }
+
+            if(line.charAt(0) == 'p') {
+                boolean canPaint = lastLine.equals(line);
+                if (!canPaint) {
+                    picture.println(line);
+                    lastLine = line;
+                }
             }
             try {
                 Thread.sleep(Chart.refreshTimeX);
             } catch (InterruptedException e) {
-                pw.close();
+                if(data != null) data.close();
+                if(picture != null) picture.close();
                 Logger.sendInfo("SaveThread stopped!");
             }
         }
