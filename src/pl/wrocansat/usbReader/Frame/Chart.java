@@ -3,9 +3,10 @@ package pl.wrocansat.usbReader.Frame;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -17,15 +18,17 @@ import org.jfree.data.xy.XYSeriesCollection;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import jssc.SerialPortList;
-import pl.wrocansat.usbReader.Listener.PortReader;
+import pl.wrocansat.usbReader.Listener.PortListener;
+import pl.wrocansat.usbReader.Main;
 import pl.wrocansat.usbReader.Utils.Logger;
+import pl.wrocansat.usbReader.Utils.Util;
 
 public class Chart implements Runnable{
 	
 	static int x = 0;
-	static int y = 0;
 	
 	public static SerialPort serialPort;
+	public static long refreshTimeX;
 	
 	private static JComboBox<String> portList;
 	private static JFrame window;
@@ -33,7 +36,8 @@ public class Chart implements Runnable{
 	private static XYSeries series;
 	private static JLabel timeRefreshLabel;
 	private static JTextField timeRefreshText;
-	
+	//Thanks for upgrdman from YouTube for chart look
+
 	public Chart() {
 		createWindow();
 	}
@@ -74,14 +78,22 @@ public class Chart implements Runnable{
 	
 	private void init() {
 		try {
-			if(timeRefreshText == null) {
-				Logger.sendError("Refresh Time is null!");
+			if(!(Util.isInteger(timeRefreshText.getText()))) {
+				Logger.sendError("Refresh Time is not Integer!");
 				return;
 			}
+
+			if(serialPort == null) {
+				Logger.sendError("Serial port is null!");
+				return;
+			}
+
 		    serialPort.openPort();
 		    serialPort.setParams(9600, 8, 1, 0);
 		    serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN | SerialPort.FLOWCONTROL_RTSCTS_OUT);
-		    serialPort.addEventListener(new PortReader(), SerialPort.MASK_RXCHAR);
+		    serialPort.addEventListener(new PortListener(), SerialPort.MASK_RXCHAR);
+		    Logger.sendInfo("Everyting is ok...");
+		    Logger.sendInfo("Starting new Thread...");
 		}
 		catch (SerialPortException ex) {
 		    Logger.sendError("There are an error on writing string to port т: " + ex);
@@ -95,28 +107,35 @@ public class Chart implements Runnable{
 		connectButton.addActionListener(new ActionListener(){
 			@Override public void actionPerformed(ActionEvent arg0) {
 				if(connectButton.getText().equals("Connect")) {
+					serialPort = new SerialPort(portList.getSelectedItem().toString());
+					init();
 
 					refreshTimeString[0] = timeRefreshText.getText().replace(" ", "");
 					refreshTime[0] = Integer.parseInt(refreshTimeString[0]);
+					refreshTimeX = refreshTime[0];
 
-					serialPort = new SerialPort(portList.getSelectedItem().toString());
-					System.out.println(portList.getSelectedItem().toString());
-					init();
+					Logger.sendInfo("Selected port: " + portList.getSelectedItem().toString());
 					connectButton.setText("Disconnect");
 					portList.setEnabled(false);
 					Thread thread = new Thread(){
 						@Override public void run() {
+							String lastLine = "";
 							while (!portList.isEnabled()) {
-									String line = PortReader.getData().replace("\n", "").replace("\r", "");;
-									double number = Double.parseDouble(line);
-									System.out.println(number);
-									series.add((x++)/4, number);
-									window.repaint();
-									try {
-										Thread.sleep(refreshTime[0]);
-									} catch (InterruptedException e) {
-										e.printStackTrace();
-									}
+								String line = PortListener.getData().replace("\n", "").replace("\r", "");
+								//double number = Double.parseDouble(line);
+								//Logger.sendLog("Data comming " + number);
+								//series.add((x++)/4, number);
+								boolean canPaint = lastLine.equals(line);
+								if(!canPaint) {
+									Main.getWindow().fillNextPixel(line);
+									lastLine = line;
+								}
+								window.repaint();
+							}
+							try {
+								Thread.sleep(refreshTime[0], 500000);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
 							}
 						}
 					};
