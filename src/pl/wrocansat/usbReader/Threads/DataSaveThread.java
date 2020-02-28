@@ -28,11 +28,10 @@ public class DataSaveThread implements Runnable {
         while (running) {
             String line = PortListener.getData().replace("\n", "").replace("\r", "");
 
-            if(line.equalsIgnoreCase("0")) return;
+            if(line.isEmpty()) return;
 
-            if(line.charAt(0) == 'd') {
-                data.println(line.replace("d", ""));
-            }
+            if(line.charAt(0) == 'd') data.println(line.replace("d", ""));
+
 
             if(line.charAt(0) == 'p') {
                 boolean canPaint = lastLine.equals(line);
@@ -49,9 +48,5 @@ public class DataSaveThread implements Runnable {
                 Logger.sendInfo("SaveThread stopped!");
             }
         }
-    }
-
-    public void terminate() {
-        running = false;
     }
 }

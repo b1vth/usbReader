@@ -7,14 +7,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class Window extends JPanel {
+public class Painter extends JPanel {
 
     int x, y;
 
     private BufferedImage canvas;
 
-    public Window(int width, int height) {
-        createCanvas(width, height);
+    public Painter(int width, int height) {
+        createCanvas(width, height*3);
         x = 0;
         y = 0;
     }

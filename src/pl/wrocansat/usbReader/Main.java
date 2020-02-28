@@ -2,21 +2,20 @@ package pl.wrocansat.usbReader;
 
 import jssc.SerialPortException;
 import pl.wrocansat.usbReader.Frame.Chart;
-import pl.wrocansat.usbReader.Frame.Window;
+import pl.wrocansat.usbReader.Frame.Painter;
 import pl.wrocansat.usbReader.Threads.DataSaveThread;
 import pl.wrocansat.usbReader.Utils.Logger;
 
 import javax.swing.*;
-import java.io.IOException;
 import java.util.Scanner;
 
 public class Main {
 
-	private static Window window;
+	private static Painter window;
 	private static Thread chart;
 	private static Thread dataSave;
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		int width;
 		int height;
 		Scanner input = new Scanner(System.in);
@@ -60,7 +59,7 @@ public class Main {
 
 	static void createFrame(int width, int height) {
 		JFrame frame = new JFrame("Painter from USB");
-		window = new Window(width, height);
+		window = new Painter(width, height);
 		frame.add(window);
 		frame.pack();
 		frame.setVisible(true);
@@ -68,7 +67,7 @@ public class Main {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
-	public static Window getWindow() {
+	public static Painter getWindow() {
 		return window;
 	}
 }
