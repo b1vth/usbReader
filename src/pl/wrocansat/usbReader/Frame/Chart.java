@@ -36,11 +36,11 @@ public class Chart implements Runnable{
 	private static XYSeries secondGas;
 	private static XYSeries thirdGas;
 	private static XYSeries humidity;
-	private static XYSeries airClear;
+	private static XYSeries airQuality;
 
 	private static JLabel timeRefreshLabel;
 	private static JTextField timeRefreshText;
-	//Thanks for upgrdman from YouTube for chart look
+	//Thanks for upgrdman from YouTube for chart window look
 
 	public Chart() {
 		createWindow();
@@ -68,7 +68,7 @@ public class Chart implements Runnable{
 		topPanel.add(connectButton);
 		topPanel.add(timeRefreshLabel);
 		topPanel.add(timeRefreshText);
-		window.add(topPanel, BorderLayout.NORTH);
+		window.add(topPanel, BorderLayout.PAGE_START);
 		
 		String[] portNames = SerialPortList.getPortNames();
 		for(int i = 0; i < portNames.length; i++)
@@ -80,19 +80,24 @@ public class Chart implements Runnable{
 		secondGas = new XYSeries("secondGas");
 		thirdGas = new XYSeries("thirdGas");
 		humidity = new XYSeries("humidity");
-		airClear = new XYSeries("air");
+		airQuality = new XYSeries("air");
 
-		XYSeriesCollection dataset = new XYSeriesCollection();
-		dataset.addSeries(temperature);
-		dataset.addSeries(pressure);
-		dataset.addSeries(firstGas);
-		dataset.addSeries(secondGas);
-		dataset.addSeries(thirdGas);
-		dataset.addSeries(humidity);
-		dataset.addSeries(airClear);
+		XYSeriesCollection data = new XYSeriesCollection();
+		data.addSeries(temperature);
+		data.addSeries(pressure);
+		data.addSeries(humidity);
 
-		JFreeChart chart = ChartFactory.createXYLineChart("SerialPort Readings", "Time", "Data", dataset, PlotOrientation.VERTICAL, false, false, false);
-		window.add(new ChartPanel(chart), BorderLayout.CENTER);
+		XYSeriesCollection gas = new XYSeriesCollection();
+		gas.addSeries(firstGas);
+		gas.addSeries(secondGas);
+		gas.addSeries(thirdGas);
+		gas.addSeries(airQuality);
+
+
+		JFreeChart chart = ChartFactory.createXYLineChart("SerialPort Readings", "Time", "Data", data, PlotOrientation.VERTICAL, false, false, false);
+		JFreeChart percentChart = ChartFactory.createXYLineChart("Air", "Time", "data", gas, PlotOrientation.VERTICAL, false ,false , false);
+		window.add(new ChartPanel(chart), BorderLayout.EAST);
+		window.add(new ChartPanel(percentChart), BorderLayout.WEST);
 	}
 	
 	private void init() {
@@ -146,15 +151,23 @@ public class Chart implements Runnable{
 								//d - dane /obrot x/obrot y/obrot z/temperatura/cisnienie/1 gaz/2 gaz/dlugosc/szerokosc/3 gaz/wilgoc/jakosc powietrza
 								//p - zdjecie
 
+								float temp = 0;
+								int press = 0;
+								int firstG = 0;
+								int secondG = 0;
+								int thirdG = 0;
+								int humid = 0;
+								int air = 0;
+
 								if(line.charAt(0) == 'd') {
 									String[] dataSplitted = line.split(",");
-									float temp = Float.parseFloat(dataSplitted[3]);
-									int press = Integer.parseInt(dataSplitted[4]);
-									int firstG = Integer.parseInt(dataSplitted[5]);
-									int secondG = Integer.parseInt(dataSplitted[6]);
-									int thirdG = Integer.parseInt(dataSplitted[9]);
-									int humid = Integer.parseInt(dataSplitted[10]);
-									int air = Integer.parseInt(dataSplitted[11]);
+									if(dataSplitted[3] != null && Util.isFloat(dataSplitted[3]))  temp = Float.parseFloat(dataSplitted[3]);
+									if(dataSplitted[4] != null && Util.isInteger(dataSplitted[4])) press = Integer.parseInt(dataSplitted[4]);
+									if(dataSplitted[5] != null && Util.isInteger(dataSplitted[5])) firstG = Integer.parseInt(dataSplitted[5]);
+									if(dataSplitted[6] != null && Util.isInteger(dataSplitted[6])) secondG = Integer.parseInt(dataSplitted[6]);
+									if(dataSplitted[7] != null && Util.isInteger(dataSplitted[7])) thirdG = Integer.parseInt(dataSplitted[9]);
+									if(dataSplitted[8] != null && Util.isInteger(dataSplitted[8])) humid = Integer.parseInt(dataSplitted[10]);
+									if(dataSplitted[9] != null && Util.isInteger(dataSplitted[9])) air = Integer.parseInt(dataSplitted[11]);
 
 									temperature.add((x++)/4, temp);
 									pressure.add((x++)/4, press);
@@ -162,7 +175,7 @@ public class Chart implements Runnable{
 									secondGas.add((x++)/4, secondG);
 									thirdGas.add((x++)/4, thirdG);
 									humidity.add((x++)/4, humid);
-									airClear.add((x++)/4, air);
+									airQuality.add((x++)/4, air);
 								}
 
 								if(line.charAt(0) == 'p') {
@@ -173,8 +186,6 @@ public class Chart implements Runnable{
 									}
 									window.repaint();
 								}
-
-								String[] lineSplitted = line.split(",");
 								Logger.sendInfo("Data from port " + serialPort.getPortName() + line);
 
 							}
@@ -195,7 +206,7 @@ public class Chart implements Runnable{
 					secondGas.clear();
 					thirdGas.clear();
 					humidity.clear();
-					airClear.clear();
+					airQuality.clear();
 					x = 0;
 				}
 			}

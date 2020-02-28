@@ -23,8 +23,17 @@ public class Util {
             double v = Double.parseDouble(str);
             return true;
         } catch (NumberFormatException nfe) {
+            return false;
         }
-        return false;
+    }
+
+    public static boolean isFloat(String str) {
+        try {
+            float f = Float.parseFloat(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     public static boolean isInteger(String s) {
