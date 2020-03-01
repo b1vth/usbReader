@@ -36,14 +36,14 @@ public class Chart implements Runnable{
 	private static Collection<XYSeries> pressureList;
 
 	private static XYSeries temperature;
-	private static XYSeries pressure;
 	private static XYSeries firstGas;
 	private static XYSeries secondGas;
-	private static XYSeries humidityFirst;
-	private static XYSeries humiditySecond;
-	private static XYSeries humidityThird;
-	private static XYSeries humidityFourth;
-	private static XYSeries airQuality;
+	private static XYSeries humidity;
+	private static XYSeries pressureMid;
+	private static XYSeries pressureFirst;
+	private static XYSeries pressureSecond;
+	private static XYSeries pressureThird;
+	private static XYSeries pressureFourth;
 
 	private static JTextField timeRefreshText;
 	//Thanks for upgrdman from YouTube for chart window look
@@ -80,14 +80,14 @@ public class Chart implements Runnable{
 		for (String portName : portNames) portList.addItem(portName);
 
 		temperature = new XYSeries("temperature");
-		pressure = new XYSeries("pressure");
-		firstGas = new XYSeries("firstGas");
+		humidity = new XYSeries("humidity");
+		firstGas = new XYSeries("methan");
 		secondGas = new XYSeries("secondGas");
-		humidityFirst = new XYSeries("humidity 1");
-		humiditySecond = new XYSeries("humidity 2");
-		humidityThird = new XYSeries("humidity 3");
-		humidityFourth = new XYSeries("humidity 4");
-		airQuality = new XYSeries("air");
+		pressureMid = new XYSeries("pressureMid");
+		pressureFirst = new XYSeries("humidity 1");
+		pressureSecond = new XYSeries("humidity 2");
+		pressureThird = new XYSeries("humidity 3");
+		pressureFourth = new XYSeries("humidity 4");
 
 		preInit();
 
@@ -118,13 +118,13 @@ public class Chart implements Runnable{
 
 		gasList.add(firstGas);
 		gasList.add(secondGas);
-		gasList.add(airQuality);
-		gasList.add(humidityFirst);
-		gasList.add(humiditySecond);
-		gasList.add(humidityThird);
-		gasList.add(humidityFourth);
+		gasList.add(humidity);
 
-		pressureList.add(pressure);
+		pressureList.add(pressureMid);
+		pressureList.add(pressureFirst);
+		pressureList.add(pressureSecond);
+		pressureList.add(pressureThird);
+		pressureList.add(pressureFourth);
 
 		temperatureList.add(temperature);
 	}
@@ -142,7 +142,7 @@ public class Chart implements Runnable{
 			}
 
 		    serialPort.openPort();
-		    serialPort.setParams(9600, 8, 1, 0);
+		    serialPort.setParams(115200, 8, 1, 0);
 		    serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN | SerialPort.FLOWCONTROL_RTSCTS_OUT);
 		    serialPort.addEventListener(new PortListener(), SerialPort.MASK_RXCHAR);
 		    Logger.sendInfo("Everyting is ok...");
@@ -182,43 +182,54 @@ public class Chart implements Runnable{
 						//p - zdjecie
 
 						float temp = 0;
-						int press = 0;
+						int pressMid = 0;
+						int pressFirst = 0;
+						int pressSecond = 0;
+						int pressThird = 0;
+						int pressFourth = 0;
 						int firstG = 0;
-						//int thirdG = 0;
 						int secondG = 0;
 						int humid = 0;
-						int air = 0;
 
 						if(line.charAt(0) == 'd') {
-							String[] dataSplitted = line.split(",");
-							if(dataSplitted[3] != null && Util.isFloat(dataSplitted[3])) {
-								temp = Float.parseFloat(dataSplitted[3]);
-							} else Logger.sendLog("Temperature is null or not Float!");
+							String[] dataSplitted = line.split(";");
+							if(dataSplitted[1] != null && Util.isFloat(dataSplitted[1])) {
+								temp = Float.parseFloat(dataSplitted[1]);
+							}
+							if(dataSplitted[2] != null && Util.isInteger(dataSplitted[2])) {
+								pressMid = Integer.parseInt(dataSplitted[2]);
+							}
+							if(dataSplitted[3] != null && Util.isInteger(dataSplitted[3])) {
+								pressFirst = Integer.parseInt(dataSplitted[3]);
+							}
 							if(dataSplitted[4] != null && Util.isInteger(dataSplitted[4])) {
-								press = Integer.parseInt(dataSplitted[4]);
-							} else Logger.sendLog("Pressure is null or not Integer!");
+								pressSecond = Integer.parseInt(dataSplitted[4]);
+							}
 							if(dataSplitted[5] != null && Util.isInteger(dataSplitted[5])) {
-								firstG = Integer.parseInt(dataSplitted[5]);
-							} else Logger.sendLog("First Gas is null or not Integer!");
+								pressThird = Integer.parseInt(dataSplitted[5]);
+							}
 							if(dataSplitted[6] != null && Util.isInteger(dataSplitted[6])) {
-								secondG = Integer.parseInt(dataSplitted[6]);
-							} else Logger.sendLog("Second Gas is null or not Integer!");
-							if(dataSplitted[8] != null && Util.isInteger(dataSplitted[10])) {
-								humid = Integer.parseInt(dataSplitted[10]);
-							} else Logger.sendLog("Humidity is null or not Integer!");
-							if(dataSplitted[9] != null && Util.isInteger(dataSplitted[11])){
-								air = Integer.parseInt(dataSplitted[11]);
-							} else Logger.sendLog("AirQuality is null or not Integer!");
+								pressFourth = Integer.parseInt(dataSplitted[6]);
+							}
+							if(dataSplitted[7] != null && Util.isInteger(dataSplitted[7])) {
+								humid = Integer.parseInt(dataSplitted[7]);
+							}
+							if(dataSplitted[8] != null && Util.isInteger(dataSplitted[8])) {
+								firstG = Integer.parseInt(dataSplitted[8]);
+							}
+							if(dataSplitted[9] != null && Util.isInteger(dataSplitted[9])) {
+								secondG = Integer.parseInt(dataSplitted[9]);
+							}
 
 							temperature.add((x++)/4, temp);
-							pressure.add((x++)/4, press);
+							humidity.add((x++)/4, humid);
 							firstGas.add((x++)/4, firstG);
 							secondGas.add((x++)/4, secondG);
-							humidityFirst.add((x++)/4, humid);
-							humiditySecond.add((x++)/4, humid);
-							humidityThird.add((x++)/4, humid);
-							humidityFourth.add((x++)/4, humid);
-							airQuality.add((x++)/4, air);
+							pressureMid.add((x++)/4, pressMid);
+							pressureFirst.add((x++)/4, pressFirst);
+							pressureSecond.add((x++)/4, pressSecond);
+							pressureThird.add((x++)/4, pressThird);
+							pressureFourth.add((x++)/4, pressFirst);
 						}
 
 						if(line.charAt(0) == 'p') {

@@ -1,0 +1,16 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="usbReader:jar">
+    <output-path>$USER_HOME$/Dekstop</output-path>
+    <root id="archive" name="usbReader.jar">
+      <element id="module-output" name="usbReader" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/fazecast/jSerialComm/2.5.3/jSerialComm-2.5.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jfree/jfreechart/1.0.14/jfreechart-1.0.14.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../jssc.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/xml-apis/xml-apis/1.3.04/xml-apis-1.3.04.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/lowagie/itext/2.1.5/itext-2.1.5.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jfree/jcommon/1.0.17/jcommon-1.0.17.jar" path-in-jar="/" />
+      <element id="library" level="project" name="Maven: bouncycastle:bcmail-jdk14:138" />
+      <element id="library" level="project" name="Maven: com.fazecast:jSerialComm:2.5.3" />
+    </root>
+  </artifact>
+</component>
